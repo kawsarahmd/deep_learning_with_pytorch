@@ -1,18 +1,4 @@
-# Deep Learning with Pytorch
-
-# PyTorch Learning Series
-
-Welcome to the PyTorch Learning Series! This guide covers everything from the basics to advanced topics like transformers.
-
----
-
-## 📚 Table of Contents
-
-1. [Introduction to PyTorch](./01-intro-pytorch/README.md)
-2. [Intermediate PyTorch](./02-intermediate-pytorch/README.md)
-3. [Image Processing with PyTorch](./03-image-pytorch/README.md)
-4. [Text Processing with PyTorch](./04-text-pytorch/README.md)
-5. [Transformer Models with PyTorch](./05-transformers-pytorch/README.md)
+# Introduction to PyTorch
 
 ## ✅ 1. Introduction to PyTorch, a Deep Learning Library
 
@@ -205,30 +191,72 @@ optimizer.step()
 ```
 
 ---
+Here is the detailed code walkthrough for **Section 3: Training a Neural Network with PyTorch** with working examples for each topic.
+
+---
 
 ## ✅ 3. Training a Neural Network with PyTorch
 
+---
+
+### 📌 3.1 A Deeper Dive into Loading Data
+
+You can load custom data using PyTorch’s `TensorDataset`.
+
 ```python
 from torch.utils.data import TensorDataset, DataLoader
+import torch
 
 X = torch.randn(100, 3)
 y = torch.randint(0, 2, (100,))
-dataset = TensorDataset(X, y)
-loader = DataLoader(dataset, batch_size=10, shuffle=True)
 
-model = nn.Sequential(
-    nn.Linear(3, 4),
-    nn.ReLU(),
-    nn.Linear(4, 2)
+dataset = TensorDataset(X, y)
+```
+
+---
+
+### 📌 3.2 Using TensorDataset
+
+```python
+print("First item in dataset:", dataset[0])
+print("Length of dataset:", len(dataset))
+```
+
+---
+
+### 📌 3.3 Using DataLoader
+
+`DataLoader` helps in batching and shuffling data.
+
+```python
+loader = DataLoader(dataset, batch_size=10, shuffle=True)
+for batch_x, batch_y in loader:
+    print("Batch X:", batch_x.shape)
+    print("Batch Y:", batch_y.shape)
+    break
+```
+
+---
+
+### 📌 3.4 Writing Our First Training Loop
+
+A simple loop that goes through the dataset.
+
+```python
+model = torch.nn.Sequential(
+    torch.nn.Linear(3, 4),
+    torch.nn.ReLU(),
+    torch.nn.Linear(4, 2)
 )
 
-loss_fn = nn.CrossEntropyLoss()
+loss_fn = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
 for epoch in range(3):
     for xb, yb in loader:
         preds = model(xb)
         loss = loss_fn(preds, yb)
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -237,24 +265,180 @@ for epoch in range(3):
 
 ---
 
+### 📌 3.5 Using the MSELoss
+
+```python
+mse_loss_fn = torch.nn.MSELoss()
+
+preds = torch.tensor([[0.5], [0.8]])
+targets = torch.tensor([[1.0], [0.0]])
+loss = mse_loss_fn(preds, targets)
+print("MSE Loss:", loss.item())
+```
+
+---
+
+### 📌 3.6 ReLU Activation Functions
+
+```python
+x = torch.tensor([[-1.0, 0.0, 1.0]])
+relu_output = torch.nn.ReLU()(x)
+print("ReLU:", relu_output)
+```
+
+---
+
+### 📌 3.7 Implementing ReLU
+
+You can define it manually too:
+
+```python
+def relu(x):
+    return torch.maximum(torch.zeros_like(x), x)
+
+print("Manual ReLU:", relu(x))
+```
+
+---
+
+### 📌 3.8 Implementing Leaky ReLU
+
+```python
+leaky_relu = torch.nn.LeakyReLU(negative_slope=0.01)
+print("Leaky ReLU:", leaky_relu(x))
+```
+
+---
+
+### 📌 3.9 Understanding Activation Functions
+
+Try with both ReLU and Tanh in the same model to compare.
+
+```python
+model_relu = torch.nn.Sequential(
+    torch.nn.Linear(3, 3),
+    torch.nn.ReLU()
+)
+
+model_tanh = torch.nn.Sequential(
+    torch.nn.Linear(3, 3),
+    torch.nn.Tanh()
+)
+```
+
+---
+
+### 📌 3.10 Learning Rate and Momentum
+
+Momentum helps accelerate learning in the relevant direction.
+
+```python
+optimizer_momentum = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+```
+
+---
+
+### 📌 3.11 Experimenting with Learning Rate
+
+```python
+# Try small vs large learning rate
+optim_small = torch.optim.SGD(model.parameters(), lr=0.0001)
+optim_large = torch.optim.SGD(model.parameters(), lr=1.0)
+```
+
+---
+
+### 📌 3.12 Experimenting with Momentum
+
+```python
+optim_no_momentum = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.0)
+optim_high_momentum = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.99)
+```
+
+
 ## ✅ 4. Evaluating and Improving Models
+
+---
+
+### 📌 4.1 Layer Initialization and Transfer Learning
+
+Use pre-trained models and modify the final layers.
 
 ```python
 from torchvision import models
 
 model = models.resnet18(pretrained=True)
 for param in model.parameters():
-    param.requires_grad = False
-model.fc = nn.Linear(model.fc.in_features, 2)
+    param.requires_grad = False  # Freeze all layers
 
+# Replace final layer for 2-class classification
+import torch.nn as nn
+model.fc = nn.Linear(model.fc.in_features, 2)
+```
+
+---
+
+### 📌 4.2 Fine-Tuning Process
+
+Unfreeze some layers and train again.
+
+```python
+for param in model.layer4.parameters():
+    param.requires_grad = True  # Fine-tune deeper layers
+```
+
+---
+
+### 📌 4.3 Freeze Layers of a Model
+
+```python
+for name, param in model.named_parameters():
+    if "fc" not in name:
+        param.requires_grad = False
+```
+
+---
+
+### 📌 4.4 Layer Initialization
+
+```python
 def init_weights(m):
     if isinstance(m, nn.Linear):
-        nn.init.xavier_uniform_(m.weight)
+        torch.nn.init.xavier_uniform_(m.weight)
         m.bias.data.fill_(0.01)
 
+simple_model = nn.Sequential(
+    nn.Linear(10, 5),
+    nn.ReLU(),
+    nn.Linear(5, 2)
+)
+
+simple_model.apply(init_weights)
+```
+
+---
+
+### 📌 4.5 Evaluating Model Performance
+
+Calculate accuracy after each epoch.
+
+```python
 def accuracy(preds, labels):
     return (preds.argmax(dim=1) == labels).float().mean()
 
+x = torch.randn(8, 4)
+y = torch.tensor([0, 1, 2, 3, 0, 1, 2, 3])
+model = nn.Linear(4, 4)
+with torch.no_grad():
+    preds = model(x)
+print("Accuracy:", accuracy(preds, y).item())
+```
+
+---
+
+### 📌 4.6 Writing the Evaluation Loop
+
+```python
 def evaluate(model, dataloader):
     model.eval()
     correct = total = 0
@@ -266,3 +450,85 @@ def evaluate(model, dataloader):
             total += y.size(0)
     return correct / total
 ```
+
+---
+
+### 📌 4.7 Calculating Accuracy Using `torchmetrics`
+
+```bash
+pip install torchmetrics
+```
+
+```python
+from torchmetrics.classification import Accuracy
+metric = Accuracy(task="multiclass", num_classes=4)
+
+preds = torch.tensor([[0.8, 0.1, 0.05, 0.05], [0.1, 0.6, 0.1, 0.2]])
+labels = torch.tensor([0, 1])
+print("Torchmetrics Accuracy:", metric(preds, labels).item())
+```
+
+---
+
+### 📌 4.8 Fighting Overfitting
+
+Overfitting occurs when your model performs well on training but poorly on validation data.
+
+Use dropout to prevent this.
+
+```python
+model = nn.Sequential(
+    nn.Linear(10, 20),
+    nn.ReLU(),
+    nn.Dropout(p=0.5),
+    nn.Linear(20, 2)
+)
+```
+
+---
+
+### 📌 4.9 Experimenting with Dropout
+
+```python
+model.train()  # dropout active
+out_train = model(torch.randn(5, 10))
+
+model.eval()  # dropout inactive
+out_eval = model(torch.randn(5, 10))
+```
+
+---
+
+### 📌 4.10 Understanding Overfitting
+
+Monitor training/validation accuracy or loss difference over epochs. Use early stopping or regularization.
+
+---
+
+### 📌 4.11 Improving Model Performance
+
+* Add more data
+* Reduce complexity
+* Try different architectures
+* Tune hyperparameters
+
+---
+
+### 📌 4.12 Implementing Random Search
+
+```python
+import random
+
+learning_rates = [0.1, 0.01, 0.001]
+batch_sizes = [16, 32, 64]
+
+random_config = {
+    "lr": random.choice(learning_rates),
+    "batch_size": random.choice(batch_sizes)
+}
+
+print("Random hyperparameters:", random_config)
+```
+
+
+
