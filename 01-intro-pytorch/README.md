@@ -190,8 +190,6 @@ loss.backward()
 optimizer.step()
 ```
 
----
-Here is the detailed code walkthrough for **Section 3: Training a Neural Network with PyTorch** with working examples for each topic.
 
 ---
 
